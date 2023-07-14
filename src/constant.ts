@@ -1,0 +1,2 @@
+export const CARS_REPOSITORY = 'CARS_REPOSITORY'
+export const SEQUELIZE = 'SEQUELIZE'

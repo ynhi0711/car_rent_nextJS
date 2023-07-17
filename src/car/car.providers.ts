@@ -8,4 +8,4 @@ export const carProviders = [
     provide: constant.CARS_REPOSITORY,
     useValue: Car,
   },
-  ];
+];

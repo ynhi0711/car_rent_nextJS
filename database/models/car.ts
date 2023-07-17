@@ -43,7 +43,7 @@ export class Car extends Model<Car> {
     type: DataType.INTEGER,
     field: 'type_id'
   })
-  typeId?: number;
+  type_id?: number;
 
   @BelongsTo(() => Type)
   type: Type;
@@ -53,7 +53,7 @@ export class Car extends Model<Car> {
     type: DataType.INTEGER,
     field: 'steering_id'
   })
-  steeringId?: number;
+  steering_id?: number;
 
   @BelongsTo(() => Steering)
   steering: Steering;
@@ -63,7 +63,7 @@ export class Car extends Model<Car> {
     type: DataType.INTEGER,
     field: 'status_id'
   })
-  statusId?: number;
+  status_id?: number;
 
   @BelongsTo(() => Status)
   status: Status;
@@ -87,6 +87,6 @@ export class Car extends Model<Car> {
   @HasMany(() => Image)
   images: Image[]
 
-  @HasOne(() => Price)
-  price: Price
+  @HasMany(() => Price)
+  price: Price[]
 }

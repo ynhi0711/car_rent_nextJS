@@ -1,15 +1,16 @@
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCarDto } from './dto/create-car.dto';
 import { UpdateCarDto } from './dto/update-car.dto';
 import * as constant from '../constant';
 
-import { QueryTypes, Sequelize } from 'sequelize';
+import { QueryTypes, Sequelize, where } from 'sequelize';
 import { Car } from 'database/models/car';
 import { Image } from 'database/models/images';
 import { Type } from 'database/models/types';
 import { Price } from 'database/models/prices';
 import { Steering } from 'database/models/steerings';
 import { Status } from 'database/models/status';
+import { APIException } from 'src/exeption/api_exception';
 
 @Injectable()
 export class CarService {
@@ -23,144 +24,118 @@ export class CarService {
   ) { }
 
 
-  async findAll(): Promise<Object[]> {
-    return this.carsRepository.findAll({ include: [Type, Image, Price, Status, Steering] })
-    /*const carWithImages = await this.sequelize.query(
-      `SELECT c.*, GROUP_CONCAT(i.id SEPARATOR '|') as imageIds, GROUP_CONCAT(i.url SEPARATOR '|') as imageUrls,
-      type.id  AS  'type.id', type.name  AS  'type.name' , type.description  AS  'type.description',  type.createdAt AS 'type.createdAt' , type.updatedAt AS  'type.updatedAt'
-      FROM Cars c
-      LEFT JOIN Images i ON c.id = i.carId
-      LEFT JOIN Types type ON c.typeId = type.id
-      GROUP BY c.id, c.name`,
-      {
-        type: QueryTypes.SELECT,
-        nest: true
+  async findAll(type_ids: number[], capacity: number, gasoline: number, steeringIds: number[], statusIds: number[], limit = 20, offset = 0): Promise<Object> {
+    try {
+      const filter: any = {}
+      if (type_ids) {
+        filter.type_id = type_ids
       }
-    );
+      if (capacity) {
+        filter.capacity = capacity
+      }
+      if (gasoline) {
+        filter.gasoline = gasoline
+      }
+      if (steeringIds) {
+        filter.steeringIds = steeringIds
+      }
+      if (statusIds) {
+        filter.statusIds = statusIds
+      }
 
-    // Handle the result and convert it into the desired format
-    let a = carWithImages.map((car: CarResult) => ({
-      id: car.id,
-      name: car.name,
-      description: car.description,
-      price: car.price,
-      capavity: car.capacity,
-      steering: car.steering,
-      gasoline: car.gasoline,
-      images: car.imageIds.split("|").map((imageId, index) => ({
-        id: imageId,
-        carId: car.id,
-        url: car.imageUrls.split("|")[index],
-      })),
-      type: car.type
-    }));
-    return a; */
+      const total = await this.carsRepository.count({ where: filter })
+      const result = await this.carsRepository.findAll({ where: filter, include: [Type, Image, Price, Status, Steering], limit: Number(limit), offset: Number(offset) })
+      return { items: result, pagination: { total: total, limit: Number(limit), offset: Number(offset) } }
+    } catch (error) {
+      throw APIException.throwException(HttpStatus.BAD_REQUEST, { message: error, });
+    }
   }
 
   async create(createCarDto: CreateCarDto) {
-    const t = await this.sequelize.transaction(); // Start the transaction
-
+    const t = await this.sequelize.transaction();
     try {
       let model = {
         name: createCarDto.name,
         description: createCarDto.description,
         capacity: createCarDto.capacity,
         gasoline: createCarDto.gasoline,
-        typeId: createCarDto.type_id,
-        statusId: createCarDto.status_id,
-        steeringId: createCarDto.steering_id
+        type_id: createCarDto.type_id,
+        status_id: createCarDto.status_id,
+        steering_id: createCarDto.steering_id
       };
-      const car = await Car.create(model, { transaction: t }); // Create the car
-
+      const car = await Car.create(model, { transaction: t });
       for (const imageData of createCarDto.images) {
         const image = await Image.create({ url: imageData, car_id: car.id }, { transaction: t });
-        // Associate the image with the car by setting its `carId`
       }
-      const price = await Price.create({ original_price: createCarDto.price.original_price, discount: createCarDto.price.discount, final_price: createCarDto.price.final_price, car_id: car.id }, { transaction: t });
-      car.price = price;
-      await t.commit(); // All operations are successful, commit the transaction
-      return car;
+      await Price.create({ original_price: createCarDto.price.original_price, discount: createCarDto.price.discount, final_price: createCarDto.price.final_price, car_id: car.id }, { transaction: t });
+      await t.commit();
     } catch (error) {
-      await t.rollback(); // Something went wrong, roll back the transaction
-      throw error;
+      await t.rollback();
+      throw APIException.throwException(HttpStatus.BAD_REQUEST, { message: 'Can not create new car', });
     }
-
-    /* return await this.sequelize.query('BEGIN;' +
-      'INSERT INTO Cars (name,price,description,steering,capacity,gasoline,typeId,creationDate,updatedOn) VALUES (' + createCarDto.name + ',' + createCarDto.price + ',' + createCarDto.description + ',' + createCarDto.steering + ',' + createCarDto.capacity + ',' + createCarDto.gasoline + ',' + createCarDto.typeId + ',' + Date.now + ',' + Date.now + ');' +
-      'INSERT INTO  Images  ( id , carId , url , description , createdAt , updatedAt ) VALUES (DEFAULT,LAST_INSERT_ID(),' + createCarDto.images[0].url + ',' + createCarDto.images[0].description + + Date.now + ',' + Date.now + ');' +
-      'COMMIT;', {
-      nest: true,
-      type: QueryTypes.SELECT,
-      mapToModel: true
-    }) */
-
-
-    // return this.carsRepository.create({
-    //   name: createCarDto.name,
-    //   description: createCarDto.description,
-    //   steeringId: createCarDto.steering_id,
-    //   capacity: createCarDto.capacity,
-    //   gasoline: createCarDto.gasoline,
-    //   typeId: createCarDto.type_id,
-    //   images: createCarDto.images.map(a => new Image({ url: a })),
-    //   price: new Price({ original_price: createCarDto.price.originalPrice, discount: createCarDto.price.discount, final_price: createCarDto.price.originalPrice }),
-    //   statusId: createCarDto.status_id,
-    // }, { include: [Type, Image, Price, Status, Steering] })
-
-   
   }
 
-  async findOne(id: number): Promise<Car | null> {
-    return this.carsRepository.findOne({ where: { id: id }, include: [Type, Image, Price, Status, Steering] });
+  async remove(id: number) {
+    const validateID = (await this.carsRepository.count({ where: { id: id } })) > 0
+    if (validateID) {
+      const t = await this.sequelize.transaction();
+      try {
+        await this.sequelize.query(`DELETE FROM cars WHERE id = :id;`, { replacements: { id: id }, transaction: t })
+        await this.sequelize.query(`DELETE FROM prices WHERE car_id = :id;`, { replacements: { id: id }, transaction: t })
+        await this.sequelize.query(`DELETE FROM images WHERE car_id = :id;`, { replacements: { id: id }, transaction: t })
+        await t.commit();
+      } catch (error) {
+        await t.rollback();
+        throw APIException.throwException(HttpStatus.BAD_REQUEST, { message: 'Can not delete this car', });
 
-    // return this.sequelize.query(
-    //   `SELECT DISTINCT Car.id, Car.name, Car.price, Car.description,  Car.steering ,  Car.capacity ,  Car.gasoline ,  Car.isActive ,  Car.creationDate ,  Car.updatedOn ,
-    //  type.id  AS  'type.id', type.name  AS  'type.name' , type.description  AS  'type.description',  type.createdAt AS 'type.createdAt' , type.updatedAt AS  'type.updatedAt' , 
-    //  images.id  AS  'images.id' ,  images.carId  AS  'images.carId' ,  images.url  AS  'images.url' ,  images.description AS 'images.description' ,  images.createdAt  AS  'images.createdAt' ,  images.updatedAt  AS  'images.updatedAt'
-    //  FROM  Cars  AS  Car 
-    //  LEFT  JOIN  Types  AS  type  ON  Car.typeId  =  type.id 
-    //  LEFT  JOIN  Images  AS  images  ON  Car.id  =  images.carId
-    //   WHERE Car.id = :carId`,
-    //   {
-    //     nest: true,
-    //     replacements: { carId: id },
-    //     type: QueryTypes.SELECT,
-    //     mapToModel: true,
-    //     raw: true
-    //   }
-    // );
+      }
+    } else {
+      throw APIException.throwException(HttpStatus.NOT_FOUND, { message: 'This id does not exist' });
+    }
+
+  }
+
+  async findOne(id: number): Promise<Car> {
+    const validateID = (await this.carsRepository.count({ where: { id: id } })) > 0
+    if (validateID) {
+      const result = await this.carsRepository.findOne({ where: { id: id }, include: [Type, Image, Price, Status, Steering] });
+      return result
+    } else {
+      throw APIException.throwException(HttpStatus.NOT_FOUND, { message: 'This id does not exist' });
+    }
+
   }
 
   async update(id: number, updateCarDto: UpdateCarDto) {
-    //   let car = await this.carsRepository.findOne({ include: ['type', 'images'], where: { id: id } });
-    //   car.name = updateCarDto.name
-    //   car.description = updateCarDto.description
-    //   car.price = updateCarDto.price
-    //   car.steering = updateCarDto.steering
-    //   car.capacity = updateCarDto.capacity
-    //   car.gasoline = updateCarDto.gasoline
-    //   car.typeId = updateCarDto.typeId
+    let currentCar = await this.carsRepository.findOne({ where: { id: id }, include: [Type, Image, Price, Status, Steering] });
+    if (!currentCar) {
+      throw APIException.throwException(HttpStatus.NOT_FOUND, { message: 'This id does not exist' });
+    }
+    const t = await this.sequelize.transaction();
 
-    //   // return this.carsRepository.upsert(car, { include: [Type, Image] })
-    // }
+    try {
+      let model = {
+        name: updateCarDto.name,
+        description: updateCarDto.description,
+        capacity: updateCarDto.capacity,
+        gasoline: updateCarDto.gasoline,
+        type_id: updateCarDto.type_id,
+        status_id: updateCarDto.status_id,
+        steering_id: updateCarDto.steering_id
+      };
+      if ((currentCar.price[0].final_price != updateCarDto.price.final_price || currentCar.price[0].original_price != updateCarDto.price.original_price) && updateCarDto.price != null) {
+        const price = await Price.create({ original_price: updateCarDto.price.original_price, discount: updateCarDto.price.discount, final_price: updateCarDto.price.final_price, car_id: id }, { transaction: t });
+      }
 
-    // async remove(id: number) {
-    //   return await this.sequelize.query('DELETE FROM cars where cars.id = ' + id)
-    // }
+      const [affectedRowsCount, updatedCars] = await this.carsRepository.update(model, {
+        where: { id },
+        returning: true,
+        transaction: t
+      });
+      await t.commit();
+    } catch (error) {
+      await t.rollback();
+      throw APIException.throwException(HttpStatus.BAD_REQUEST, { message: 'Can not update this car', });
+    }
   }
-
-  // class CarResult {
-  //   id: number;
-  //   name: string;
-  //   price: number;
-  //   capacity: string;
-  //   description: string;
-  //   typeId: number;
-  //   isActive: boolean;
-  //   imageIds: string;
-  //   imageUrls: string;
-  //   steering: string;
-  //   gasoline: string;
-  //   type: Type
-
 }

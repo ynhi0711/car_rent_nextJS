@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CarService } from './car/car.service';
@@ -11,4 +11,6 @@ import { DatabaseModule } from './data/database.module';
   controllers: [CarController, AppController],
   providers: [CarService, AppService, ...carProviders],
 })
-export class AppModule { }
+export class AppModule {
+
+}

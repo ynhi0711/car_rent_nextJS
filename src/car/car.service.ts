@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCarDto } from './dto/create-car.dto';
 import { UpdateCarDto } from './dto/update-car.dto';
-import * as constant from '../constant';
+import * as constant from '../common/constant';
 
 import { QueryTypes, Sequelize, where } from 'sequelize';
 import { Car } from 'database/models/car';
@@ -98,12 +98,10 @@ export class CarService {
   async findOne(id: number): Promise<Car> {
     const validateID = (await this.carsRepository.count({ where: { id: id } })) > 0
     if (validateID) {
-      const result = await this.carsRepository.findOne({ where: { id: id }, include: [Type, Image, Price, Status, Steering] });
-      return result
+      return this.carsRepository.findOne({ where: { id: id }, include: [Type, Image, Price, Status, Steering] });
     } else {
       throw APIException.throwException(HttpStatus.NOT_FOUND, { message: 'This id does not exist' });
     }
-
   }
 
   async update(id: number, updateCarDto: UpdateCarDto) {

@@ -33,3 +33,47 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+# Logs
+logs
+*.log
+
+# Build output
+dist/
+build/
+
+# Environment variables
+.env
+.env.*
+.env.local
+
+# Dependency directories
+node_modules/
+pnp/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.iml
+.DS_Store
+
+# Testing directories
+coverage/
+
+# Dependency management files
+package-lock.json
+yarn.lock
+
+# NestJS specific files
+ormconfig.json
+.env.example
+
+# Development specific files
+*.swp
+*.bak
+*.tmp
+
+# OS generated files
+.DS_Store
+Thumbs.db
+ehthumbs.db

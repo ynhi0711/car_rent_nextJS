@@ -16,11 +16,12 @@ import { ConfigModule } from '@nestjs/config';
 import { userProviders } from './users/user.providers';
 import { PassportModule } from '@nestjs/passport';
 import { authProviders } from './auth/auth.providers';
+import { MyService } from './config.service';
 
 @Module({
   imports: [
     DatabaseModule,
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ envFilePath: `.env.${process.env.NODE_ENV}`, isGlobal: true }),
     JwtModule.register({ signOptions: { expiresIn: '60s' } }),
     PassportModule.register({ defaultStrategy: 'jwt' })
   ],
@@ -36,7 +37,9 @@ import { authProviders } from './auth/auth.providers';
     ...userProviders,
     AccessTokenStrategy,
     RefreshTokenStrategy,
-    ...authProviders],
+    ...authProviders,
+    MyService
+  ],
 })
 export class AppModule {
 

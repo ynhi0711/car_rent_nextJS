@@ -7,6 +7,7 @@ import { ConfigService } from '@nestjs/config';
 
 import * as argon2 from 'argon2';
 import { AuthDto } from 'src/users/dto/auth.dto';
+import { MyService } from 'src/config.service';
 
 
 @Injectable()
@@ -14,7 +15,7 @@ export class AuthService {
     constructor(
         private usersService: UsersService,
         private jwtService: JwtService,
-        private configService: ConfigService,
+        private myService: MyService,
     ) { }
 
     async signUp(createUserDto: CreateUserDto): Promise<AuthUserResponseInteface> {
@@ -80,7 +81,7 @@ export class AuthService {
                     role
                 },
                 {
-                    secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
+                    secret: this.myService.getJwtAccessSecret(),
                     expiresIn: '15m',
                 },
             ),
@@ -91,7 +92,7 @@ export class AuthService {
                     role
                 },
                 {
-                    secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+                    secret: this.myService.getJwtRefreshSecret(),
                     expiresIn: '7d',
                 },
             ),

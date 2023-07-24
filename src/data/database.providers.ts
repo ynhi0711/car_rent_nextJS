@@ -16,16 +16,11 @@ export const databaseProviders = [
     useFactory: () => {
       const sequelize = new Sequelize({
         dialect: 'mysql',
-        host: process.env.DB_HOSTNAME,
-        // host: '127.0.0.1',
+        host: process.env.DATABASE_HOST,
         port: parseInt(process.env.DB_PORT),
-        // port: 3306,
-        // username: 'root',
         username: process.env.DB_USERNAME,
-        // password: 'Ynhi071196**',
         password: process.env.DB_PASSWORD,
         database: process.env.DB_NAME,
-        // database: 'db_5',
         sync: { force: false }
       });
       sequelize.addModels([Car, Image, Type, Steering, Price, Status, User, UserRole, Favorite]);

@@ -17,28 +17,34 @@ import { userProviders } from './users/user.providers';
 import { PassportModule } from '@nestjs/passport';
 import { authProviders } from './auth/auth.providers';
 import { MyService } from './config.service';
+import { OrdersController } from './orders/orders.controller';
+import { OrdersService } from './orders/orders.service';
+import { orderProviders } from './orders/orders.providers';
 
 @Module({
   imports: [
     DatabaseModule,
     ConfigModule.forRoot({ envFilePath: `.env.${process.env.NODE_ENV}`, isGlobal: true }),
-    JwtModule.register({ signOptions: { expiresIn: '60s' } }),
-    PassportModule.register({ defaultStrategy: 'jwt' })
+    JwtModule.register({}),
+    PassportModule.register({ defaultStrategy: 'jwt' }),
   ],
   controllers: [CarController,
     AppController,
     AuthController,
-    UsersController],
+    UsersController,
+    OrdersController],
   providers: [CarService,
     AppService,
     ...carProviders,
+    ...orderProviders,
     AuthService,
     UsersService,
     ...userProviders,
     AccessTokenStrategy,
     RefreshTokenStrategy,
     ...authProviders,
-    MyService
+    MyService,
+    OrdersService
   ],
 })
 export class AppModule {

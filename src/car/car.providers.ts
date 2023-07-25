@@ -1,4 +1,3 @@
-import { DataSource } from "typeorm";
 import * as constant from '../common/constant';
 import { Car } from "database/models/car";
 

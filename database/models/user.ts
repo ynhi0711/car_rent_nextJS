@@ -66,3 +66,5 @@ export class User extends Model<User> {
   updatedAt!: Date;
 
 }
+
+export default User;

@@ -11,6 +11,8 @@ import { Price } from 'database/models/prices';
 import { Steering } from 'database/models/steerings';
 import { Status } from 'database/models/status';
 import { APIException } from 'src/exeption/api_exception';
+import { CarResponseDto } from './dto/car-response.dto';
+import { PagingDto } from 'src/common/paging.dto';
 
 @Injectable()
 export class CarService {
@@ -24,7 +26,7 @@ export class CarService {
   ) { }
 
 
-  async findAll(type_ids: number[], capacity: number, gasoline: number, steeringIds: number[], statusIds: number[], limit = 20, offset = 0): Promise<Object> {
+  async findAll(type_ids: number[], capacity: number, gasoline: number, steeringIds: number[], statusIds: number[], limit = 20, offset = 0): Promise<PagingDto<CarResponseDto>> {
     try {
       const filter: any = {}
       if (type_ids) {
@@ -42,10 +44,8 @@ export class CarService {
       if (statusIds) {
         filter.statusIds = statusIds
       }
-
-      const total = await this.carsRepository.count({ where: filter })
-      const result = await this.carsRepository.findAll({ where: filter, include: [Type, Image, Price, Status, Steering], limit: Number(limit), offset: Number(offset) })
-      return { items: result, pagination: { total: total, limit: Number(limit), offset: Number(offset) } }
+      const result = await this.carsRepository.findAndCountAll({ where: filter, include: [Type, Image, Price, Status, Steering], limit: Number(limit), offset: Number(offset) })
+      return new PagingDto(result.rows.map(car => new CarResponseDto(car)), result.count, Number(limit), Number(offset))
     } catch (error) {
       throw APIException.throwException(HttpStatus.BAD_REQUEST, { message: error, });
     }
@@ -69,6 +69,7 @@ export class CarService {
       }
       await Price.create({ original_price: createCarDto.price.original_price, discount: createCarDto.price.discount, final_price: createCarDto.price.final_price, car_id: car.id }, { transaction: t });
       await t.commit();
+      return { car_id: car.id }
     } catch (error) {
       await t.rollback();
       throw APIException.throwException(HttpStatus.BAD_REQUEST, { message: 'Can not create new car', });
@@ -95,10 +96,11 @@ export class CarService {
 
   }
 
-  async findOne(id: number): Promise<Car> {
+  async findOne(id: number): Promise<CarResponseDto> {
     const validateID = (await this.carsRepository.count({ where: { id: id } })) > 0
     if (validateID) {
-      return this.carsRepository.findOne({ where: { id: id }, include: [Type, Image, Price, Status, Steering] });
+      const car = await this.carsRepository.findOne({ where: { id: id }, include: [Type, Image, Price, Status, Steering] });
+      return new CarResponseDto(car)
     } else {
       throw APIException.throwException(HttpStatus.NOT_FOUND, { message: 'This id does not exist' });
     }

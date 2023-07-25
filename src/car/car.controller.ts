@@ -19,7 +19,7 @@ export class CarController {
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
   @UsePipes(new ValidationPipe({ transform: true }))
-  async create(@Body() createCarDto: CreateCarDto): Promise<void> {
+  async create(@Body() createCarDto: CreateCarDto): Promise<any> {
     return this.carService.create(createCarDto)
   }
 

@@ -1,4 +1,4 @@
-import { ForbiddenException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, HttpStatus, Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { APIException } from 'src/exeption/api_exception';
@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import * as argon2 from 'argon2';
 import { AuthDto } from 'src/users/dto/auth.dto';
 import { MyService } from 'src/config.service';
+import { AuthUserResponseDto } from './dto/auth_user_response.dto';
 
 
 @Injectable()
@@ -18,7 +19,7 @@ export class AuthService {
         private myService: MyService,
     ) { }
 
-    async signUp(createUserDto: CreateUserDto): Promise<AuthUserResponseInteface> {
+    async signUp(createUserDto: CreateUserDto): Promise<AuthUserResponseDto> {
         // Check if user exists
         const userExists = await this.usersService.findByUsername(
             createUserDto.name,
@@ -36,18 +37,11 @@ export class AuthService {
         const user = await this.usersService.findById(createdUser.id)
         const tokens = await this.getTokens(user.id, user.name, user.role?.role);
         await this.updateRefreshToken(user.id, tokens.refreshToken);
-        return {
-            id: user.id,
-            name: user.name,
-            avatar_url: user.avatar_url,
-            role: user.role?.role,
-            role_id: user.role_id,
-            accessToken: tokens.accessToken,
-            refreshToken: tokens.refreshToken
-        };
+
+        return new AuthUserResponseDto(user, tokens)
     }
 
-    async signIn(data: AuthDto): Promise<AuthUserResponseInteface> {
+    async signIn(data: AuthDto): Promise<AuthUserResponseDto> {
         // Check if user exists
         const userExists = await this.usersService.findByUsername(data.username);
         if (!userExists) {
@@ -59,15 +53,8 @@ export class AuthService {
 
         const tokens = await this.getTokens(userExists.id, userExists.name, userExists.role.role);
         await this.updateRefreshToken(userExists.id, tokens.refreshToken);
-        return {
-            id: userExists.id,
-            name: userExists.name,
-            avatar_url: userExists.avatar_url,
-            role: userExists.role.role,
-            role_id: userExists.role_id,
-            accessToken: tokens.accessToken,
-            refreshToken: tokens.refreshToken
-        };
+
+        return new AuthUserResponseDto(userExists, tokens)
     }
     hashData(data: string) {
         return argon2.hash(data);
@@ -82,7 +69,7 @@ export class AuthService {
                 },
                 {
                     secret: this.myService.getJwtAccessSecret(),
-                    expiresIn: '15m',
+                    expiresIn: '1d',
                 },
             ),
             this.jwtService.signAsync(

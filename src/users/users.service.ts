@@ -6,6 +6,9 @@ import { User } from 'database/models/user';
 import { APIException } from 'src/exeption/api_exception';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserRole } from 'database/models/user_role';
+import { UserResponseDto } from './dto/user_response.dto';
+import { PagingDto } from 'src/common/paging.dto';
+import { off } from 'process';
 
 @Injectable()
 export class UsersService {
@@ -27,8 +30,9 @@ export class UsersService {
         }
     }
 
-    async findAll(): Promise<User[]> {
-        return this.usersRepository.findAll({ include: [UserRole] });
+    async findAll(limit: number, offset: number): Promise<PagingDto<UserResponseDto>> {
+        const data = await this.usersRepository.findAndCountAll({ include: [UserRole], limit: Number(limit), offset: Number(offset) });
+        return new PagingDto(data.rows.map(user => new UserResponseDto(user)), data.count, Number(limit), Number(offset))
     }
 
     async findById(id: number): Promise<User> {
@@ -37,6 +41,11 @@ export class UsersService {
             APIException.throwException(HttpStatus.NOT_FOUND, { message: 'This user does not exist' })
         }
         return user
+    }
+
+    async findByidFromController(id: number) {
+        const user = await this.findById(id)
+        return new UserResponseDto(user)
     }
 
     async findByUsername(username: string): Promise<User> {

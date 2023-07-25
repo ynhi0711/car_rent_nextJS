@@ -4,6 +4,7 @@ import { Steering } from "./steerings";
 import { Status } from "./status";
 import { Image } from "./images";
 import { Price } from "./prices";
+import Order from "./order";
 
 @Table({
   tableName: "cars",
@@ -89,4 +90,9 @@ export class Car extends Model<Car> {
 
   @HasMany(() => Price)
   price: Price[]
+
+  @HasMany(() => Order)
+  orders: Order[];
 }
+
+export default Car

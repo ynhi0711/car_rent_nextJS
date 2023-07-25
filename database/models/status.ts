@@ -34,4 +34,4 @@ export class Status extends Model<Status> {
   updatedAt!: Date;
 }
 
-enum CarStatus { available = 'AVAILABLE', rented = 'RENTED', unavailable = 'UNAVAILABLE' }
+export enum CarStatus { available = 1, rented = 2, unavailable = 3 }

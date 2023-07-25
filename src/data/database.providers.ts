@@ -9,6 +9,13 @@ import { Status } from 'database/models/status';
 import { User } from 'database/models/user';
 import { UserRole } from 'database/models/user_role';
 import { Favorite } from 'database/models/favorite';
+import Order from 'database/models/order';
+import Payment from 'database/models/payment';
+import PaymentMethod from 'database/models/paymnet_method';
+import PaymentStatus from 'database/models/payment_status';
+import Coupon from 'database/models/Coupon';
+import CouponType from 'database/models/coupon_type';
+import OrderStatus from 'database/models/order_status';
 
 export const databaseProviders = [
   {
@@ -23,7 +30,7 @@ export const databaseProviders = [
         database: process.env.DB_NAME,
         sync: { force: false }
       });
-      sequelize.addModels([Car, Image, Type, Steering, Price, Status, User, UserRole, Favorite]);
+      sequelize.addModels([Car, Image, Type, Steering, Price, Status, User, UserRole, Favorite, Order, Payment, PaymentMethod, PaymentStatus, Coupon, CouponType, OrderStatus]);
       return sequelize;
     },
   },

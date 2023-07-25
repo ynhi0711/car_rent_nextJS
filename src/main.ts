@@ -12,7 +12,7 @@ async function bootstrap() {
   } else if (process.env.NODE_ENV === 'staging') {
     dotenv.config({ path: '.env.staging' });
   }
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { logger: ['error', 'warn', 'debug'] });
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalFilters(new HttpExceptionFilter());
   await app.listen(3000);

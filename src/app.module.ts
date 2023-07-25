@@ -20,6 +20,9 @@ import { MyService } from './config.service';
 import { OrdersController } from './orders/orders.controller';
 import { OrdersService } from './orders/orders.service';
 import { orderProviders } from './orders/orders.providers';
+import { WinstonModule } from 'nest-winston';
+import { LoggerMiddleware } from './middleware/logging-middleware';
+import * as winston from 'winston';
 
 @Module({
   imports: [
@@ -27,6 +30,21 @@ import { orderProviders } from './orders/orders.providers';
     ConfigModule.forRoot({ envFilePath: `.env.${process.env.NODE_ENV}`, isGlobal: true }),
     JwtModule.register({}),
     PassportModule.register({ defaultStrategy: 'jwt' }),
+    WinstonModule.forRootAsync({
+      useFactory: () => ({
+        transports: [
+          new winston.transports.Console(),
+          new winston.transports.File({
+            level: 'info',
+            filename: 'logs/application.log',
+            format: winston.format.combine(
+              winston.format.timestamp(),
+              winston.format.json(),
+            ),
+          }),
+        ],
+      }),
+    }),
   ],
   controllers: [CarController,
     AppController,
@@ -48,5 +66,7 @@ import { orderProviders } from './orders/orders.providers';
   ],
 })
 export class AppModule {
-
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes('*');
+  }
 }

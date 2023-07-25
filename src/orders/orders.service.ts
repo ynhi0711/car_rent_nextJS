@@ -36,7 +36,9 @@ export class OrdersService {
 
     @Inject(constant.SEQUELIZE)
     private sequelize: Sequelize,
-  ) { }
+  ) {
+    
+  }
 
   async calculatePrice(createOrderDto: CreateOrderDto) {
     const car = await this.carRepository.findOne({

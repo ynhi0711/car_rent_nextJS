@@ -1,33 +1,36 @@
 import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { CarService } from './car/car.service';
-import { CarController } from './car/car.controller';
-import { carProviders } from './car/car.providers';
-import { DatabaseModule } from './data/database.module';
-import { AuthController } from './auth/auth.controller';
-import { AuthService } from './auth/auth.service';
-import { UsersService } from './users/users.service';
+import { CarService } from './feature/car/car.service';
+import { CarController } from './feature/car/car.controller';
+import { carProviders } from './feature/car/car.providers';
+import { AuthController } from './feature/auth/auth.controller';
+import { AuthService } from './feature/auth/auth.service';
+import { UsersService } from './feature/users/users.service';
 import { JwtModule } from '@nestjs/jwt';
-import { UsersController } from './users/users.controller';
-import { AccessTokenStrategy } from './auth/strategies/accessToken.strategy';
-import { RefreshTokenStrategy } from './auth/strategies/refreshToken.strategy';
+import { UsersController } from './feature/users/users.controller';
+import { AccessTokenStrategy } from './feature/auth/strategies/accessToken.strategy';
+import { RefreshTokenStrategy } from './feature/auth/strategies/refreshToken.strategy';
 import { ConfigModule } from '@nestjs/config';
-import { userProviders } from './users/user.providers';
+import { userProviders } from './feature/users/user.providers';
 import { PassportModule } from '@nestjs/passport';
-import { authProviders } from './auth/auth.providers';
+import { authProviders } from './feature/auth/auth.providers';
 import { MyService } from './config.service';
-import { OrdersController } from './orders/orders.controller';
-import { OrdersService } from './orders/orders.service';
-import { orderProviders } from './orders/orders.providers';
+import { OrdersController } from './feature/orders/orders.controller';
+import { OrdersService } from './feature/orders/orders.service';
+import { orderProviders } from './feature/orders/orders.providers';
 import { WinstonModule } from 'nest-winston';
 import { LoggerMiddleware } from './middleware/logging-middleware';
 import * as winston from 'winston';
+import { DatabaseModule } from './database/database.module';
 
 @Module({
   imports: [
     DatabaseModule,
-    ConfigModule.forRoot({ envFilePath: `.env.${process.env.NODE_ENV}`, isGlobal: true }),
+    ConfigModule.forRoot({
+      envFilePath: `.env.${process.env.NODE_ENV}`,
+      isGlobal: true,
+    }),
     JwtModule.register({}),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     WinstonModule.forRootAsync({
@@ -46,12 +49,15 @@ import * as winston from 'winston';
       }),
     }),
   ],
-  controllers: [CarController,
+  controllers: [
+    CarController,
     AppController,
     AuthController,
     UsersController,
-    OrdersController],
-  providers: [CarService,
+    OrdersController,
+  ],
+  providers: [
+    CarService,
     AppService,
     ...carProviders,
     ...orderProviders,
@@ -62,7 +68,7 @@ import * as winston from 'winston';
     RefreshTokenStrategy,
     ...authProviders,
     MyService,
-    OrdersService
+    OrdersService,
   ],
 })
 export class AppModule {

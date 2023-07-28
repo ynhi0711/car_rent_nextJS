@@ -24,6 +24,7 @@ import { OrderResponseDto } from './dto/order_response.dto';
 import { UserRole } from 'src/feature/users/entities/user_role.entity';
 import { PagingDto } from 'src/common/paging.dto';
 import Coupon, { CouponEnum } from './entities/coupon.entity';
+import { QueueService } from 'src/queues/queues.service';
 
 @Injectable()
 export class OrdersService {
@@ -42,7 +43,9 @@ export class OrdersService {
 
     @Inject(constant.SEQUELIZE)
     private sequelize: Sequelize,
-  ) {}
+    private readonly queueService: QueueService,
+
+  ) { }
 
   async calculatePrice(createOrderDto: CreateOrderDto) {
     const car = await this.carRepository.findOne({
@@ -187,6 +190,15 @@ export class OrdersService {
           transaction: t,
         });
 
+        this.queueService.sendPlaceOrderMail(
+          user.email,
+          user.name,
+          `${car.name} - ${car.type?.name}`,
+          order.pick_up_date.toString(),
+          order.drop_off_date.toString(),
+          price,
+          PaymentMethodEnum[1],
+        );
         await t.commit();
         return { order_id: order.id, payment_id: payment.id };
       } else {
@@ -196,10 +208,7 @@ export class OrdersService {
       }
     } catch (error) {
       await t.rollback();
-      if (
-        typeof error?.original?.code !== 'undefined' &&
-        error.original.code === 'ER_NO_REFERENCED_ROW_2'
-      ) {
+      if (typeof error?.original?.code !== 'undefined') {
         throw APIException.throwException(HttpStatus.BAD_REQUEST, {
           message: error?.original?.sqlMessage,
         });

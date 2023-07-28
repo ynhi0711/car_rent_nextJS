@@ -9,6 +9,7 @@ import { UserRole } from 'src/feature/users/entities/user_role.entity';
 import { UserResponseDto } from './dto/user_response.dto';
 import { PagingDto } from 'src/common/paging.dto';
 import { off } from 'process';
+import { QueueService } from 'src/queues/queues.service';
 
 @Injectable()
 export class UsersService {
@@ -18,7 +19,9 @@ export class UsersService {
 
     @Inject(constant.SEQUELIZE)
     private sequelize: Sequelize,
-  ) {}
+    private readonly queueService: QueueService,
+
+  ) { }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
@@ -30,7 +33,13 @@ export class UsersService {
         avatar_url: createUserDto.avatar_url,
         role_id: createUserDto.role_id,
       });
+
+      this.queueService.sendRegisterAccountMail(
+        createUserDto.email,
+        createUserDto.name,
+      );
       return createdUser;
+
     } catch (error) {
       APIException.throwException(HttpStatus.BAD_REQUEST, {
         message: 'Can not create new User',

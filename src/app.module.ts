@@ -23,6 +23,7 @@ import { WinstonModule } from 'nest-winston';
 import { LoggerMiddleware } from './middleware/logging-middleware';
 import * as winston from 'winston';
 import { DatabaseModule } from './database/database.module';
+import { QueuesModule } from './queues/queues.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { DatabaseModule } from './database/database.module';
         ],
       }),
     }),
+    QueuesModule,
   ],
   controllers: [
     CarController,

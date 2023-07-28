@@ -9,7 +9,7 @@ import { CreateCarDto } from './dto/create-car.dto';
 import { UpdateCarDto } from './dto/update-car.dto';
 import * as constant from '../../common/constant';
 
-import { QueryTypes, Sequelize, where } from 'sequelize';
+import { Op, QueryTypes, Sequelize, where } from 'sequelize';
 import { Car } from 'src/feature/car/entities/car.entity';
 import { Image } from 'src/feature/car/entities/images.entity';
 import { Type } from 'src/feature/car/entities/types.entity';
@@ -31,6 +31,7 @@ export class CarService {
   ) { }
 
   async findAll(
+    name: string,
     type_ids: number[],
     capacity: number,
     gasoline: number,
@@ -56,6 +57,11 @@ export class CarService {
       if (statusIds) {
         filter.statusIds = statusIds;
       }
+
+      if (name) {
+        filter.name = { [Op.like]: '%' + name + '%' }
+      }
+
       const result = await this.carsRepository.findAndCountAll({
         where: filter,
         include: [Type, Image, Price, Status, Steering],

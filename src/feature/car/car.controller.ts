@@ -41,6 +41,7 @@ export class CarController {
   @Public()
   @Get()
   async findAll(
+    @Query('name') name: string,
     @Query('type_ids') typeIds: number[],
     @Query('capacity') capacity: number,
     @Query('gasoline') gasoline: number,
@@ -50,6 +51,7 @@ export class CarController {
     @Query('limit') limit: number,
   ) {
     return this.carService.findAll(
+      name,
       typeIds,
       capacity,
       gasoline,

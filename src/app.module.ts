@@ -20,20 +20,21 @@ import { OrdersController } from './feature/orders/orders.controller';
 import { OrdersService } from './feature/orders/orders.service';
 import { orderProviders } from './feature/orders/orders.providers';
 import { WinstonModule } from 'nest-winston';
-import { LoggerMiddleware } from './middleware/logging-middleware';
 import * as winston from 'winston';
 import { DatabaseModule } from './database/database.module';
-import { QueuesModule } from './queues/queues.module';
+import { LoggerMiddleware } from './common/middleware/logging-middleware';
+import { QueuesModule } from './common/queues/queues.module';
+import { CarModule } from './feature/car/car.module';
+import { UsersModule } from './feature/users/users.module';
+import { AuthModule } from './feature/auth/auth.module';
+import { OrdersModule } from './feature/orders/orders.module';
 
 @Module({
   imports: [
-    DatabaseModule,
     ConfigModule.forRoot({
       envFilePath: `.env.${process.env.NODE_ENV}`,
       isGlobal: true,
     }),
-    JwtModule.register({}),
-    PassportModule.register({ defaultStrategy: 'jwt' }),
     WinstonModule.forRootAsync({
       useFactory: () => ({
         transports: [
@@ -49,28 +50,16 @@ import { QueuesModule } from './queues/queues.module';
         ],
       }),
     }),
-    QueuesModule,
+    CarModule,
+    UsersModule,
+    AuthModule,
+    OrdersModule,
   ],
   controllers: [
-    CarController,
     AppController,
-    AuthController,
-    UsersController,
-    OrdersController,
   ],
   providers: [
-    CarService,
     AppService,
-    ...carProviders,
-    ...orderProviders,
-    AuthService,
-    UsersService,
-    ...userProviders,
-    AccessTokenStrategy,
-    RefreshTokenStrategy,
-    ...authProviders,
-    MyService,
-    OrdersService,
   ],
 })
 export class AppModule {

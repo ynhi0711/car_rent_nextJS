@@ -3,13 +3,13 @@ import * as constant from '../../common/constant';
 import { Sequelize } from 'sequelize-typescript';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from 'src/feature/users/entities/user.entity';
-import { APIException } from 'src/exception/api_exception';
+import { APIException } from 'src/common/exception/api_exception';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserRole } from 'src/feature/users/entities/user_role.entity';
 import { UserResponseDto } from './dto/user_response.dto';
 import { PagingDto } from 'src/common/paging.dto';
 import { off } from 'process';
-import { QueueService } from 'src/queues/queues.service';
+import { QueueService } from 'src/common/queues/queues.service';
 
 @Injectable()
 export class UsersService {

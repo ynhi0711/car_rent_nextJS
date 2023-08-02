@@ -1,7 +1,7 @@
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
-import { EMAIL_QUEUE, PLACE_ORDER_EMAIL, REGISTER_ACCOUNT_EMAIL } from '../common/constant';
+import { EMAIL_QUEUE, PLACE_ORDER_EMAIL, REGISTER_ACCOUNT_EMAIL } from '../constant';
 
 @Injectable()
 export class QueueService {

@@ -1,8 +1,7 @@
-import { HttpAdapterHost, NestFactory } from '@nestjs/core';
+import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import { HttpExceptionFilter } from './exception/http-exception.filter';
-import { AllExceptionsFilter } from './exception/all_exception.filter';
+import { HttpExceptionFilter } from './common/exception/http-exception.filter';
 
 async function bootstrap() {
   const dotenv = require('dotenv');

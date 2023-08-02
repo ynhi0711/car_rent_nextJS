@@ -1,7 +1,7 @@
 import { ForbiddenException, HttpStatus, Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { APIException } from 'src/exception/api_exception';
+import { APIException } from 'src/common/exception/api_exception';
 import { CreateUserDto } from 'src/feature/users/dto/create-user.dto';
 import { ConfigService } from '@nestjs/config';
 

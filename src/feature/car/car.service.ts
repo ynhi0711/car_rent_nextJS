@@ -16,7 +16,7 @@ import { Type } from 'src/feature/car/entities/types.entity';
 import { Price } from 'src/feature/car/entities/prices.entity';
 import { Steering } from 'src/feature/car/entities/steerings.entity';
 import { Status } from 'src/feature/car/entities/status.entity';
-import { APIException } from 'src/exception/api_exception';
+import { APIException } from 'src/common/exception/api_exception';
 import { CarResponseDto } from './dto/car-response.dto';
 import { PagingDto } from 'src/common/paging.dto';
 
@@ -103,7 +103,7 @@ export class CarService {
       await Price.create(
         {
 
-          price: createCarDto.price.price,
+          price: createCarDto.price,
           car_id: car.id,
         },
         { transaction: t },
@@ -188,10 +188,10 @@ export class CarService {
         status_id: updateCarDto.status_id,
         steering_id: updateCarDto.steering_id,
       };
-      if (currentCar.price[0].price != updateCarDto.price.price && updateCarDto.price != null) {
+      if (currentCar.price[0].price != updateCarDto.price && updateCarDto.price != null) {
         const price = await Price.create(
           {
-            price: updateCarDto.price.price,
+            price: updateCarDto.price,
             car_id: id,
           },
           { transaction: t },

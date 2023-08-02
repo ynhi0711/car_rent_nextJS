@@ -22,7 +22,7 @@ export class AuthController {
   constructor(
     private authService: AuthService,
     private userService: UsersService,
-  ) {}
+  ) { }
 
   @Public()
   @Post('signup')
@@ -37,6 +37,7 @@ export class AuthController {
   }
 
   @Get('logout')
+  @HttpCode(HttpStatus.NO_CONTENT)
   logout(@Req() req: Request) {
     this.authService.logout(req.user['sub']);
   }

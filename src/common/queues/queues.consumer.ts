@@ -5,7 +5,7 @@ import {
     EMAIL_QUEUE,
     PLACE_ORDER_EMAIL,
     REGISTER_ACCOUNT_EMAIL,
-} from '../common/constant';
+} from '../constant';
 import { MyService } from 'src/config.service';
 
 @Processor(EMAIL_QUEUE)

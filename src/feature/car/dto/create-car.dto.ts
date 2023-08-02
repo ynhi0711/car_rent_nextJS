@@ -26,11 +26,5 @@ export class CreateCarDto {
   @IsNumber()
   @Expose({ name: 'steering_id' })
   steering_id: number;
-  price: PriceDto;
-}
-
-class PriceDto {
-
-  @IsNumber()
   price: number;
 }

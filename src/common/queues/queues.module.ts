@@ -2,7 +2,7 @@ import { BullModule } from '@nestjs/bull/dist/bull.module';
 import { Module } from '@nestjs/common'
 import { QueueConsumer } from './queues.consumer';
 import { QueueService } from './queues.service';
-import { EMAIL_QUEUE } from '../common/constant'
+import { EMAIL_QUEUE } from '../constant'
 import { MyService } from 'src/config.service';
 @Module({
   imports: [BullModule.forRoot({

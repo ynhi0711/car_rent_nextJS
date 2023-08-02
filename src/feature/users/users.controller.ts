@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Query,
@@ -18,7 +20,7 @@ import { off } from 'process';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @Public()
   @Get()
@@ -43,6 +45,7 @@ export class UsersController {
   @Delete(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
+  @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: number) {
     return this.usersService.remove(id);
   }

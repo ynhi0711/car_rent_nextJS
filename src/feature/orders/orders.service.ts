@@ -2,7 +2,7 @@ import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import * as constant from '../../common/constant';
 import Car from 'src/feature/car/entities/car.entity';
-import { APIException } from 'src/exception/api_exception';
+import { APIException } from 'src/common/exception/api_exception';
 import Order from 'src/feature/orders/entities/order.entity';
 import { Sequelize } from 'sequelize';
 import OrderStatus, {
@@ -24,7 +24,7 @@ import { OrderResponseDto } from './dto/order_response.dto';
 import { UserRole } from 'src/feature/users/entities/user_role.entity';
 import { PagingDto } from 'src/common/paging.dto';
 import Coupon, { CouponEnum } from './entities/coupon.entity';
-import { QueueService } from 'src/queues/queues.service';
+import { QueueService } from 'src/common/queues/queues.service';
 
 @Injectable()
 export class OrdersService {

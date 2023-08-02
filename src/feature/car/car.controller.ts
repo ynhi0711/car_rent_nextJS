@@ -14,11 +14,12 @@ import {
   UseInterceptors,
   UseGuards,
   SetMetadata,
+  HttpCode,
 } from '@nestjs/common';
 import { CarService } from './car.service';
 import { CreateCarDto } from './dto/create-car.dto';
 import { UpdateCarDto } from './dto/update-car.dto';
-import { TransformInterceptor } from 'src/interceptor/transform.interceptor';
+import { TransformInterceptor } from 'src/common/interceptor/transform.interceptor';
 import { Response } from 'express';
 import { Public } from 'src/common/decorators/public.decorator';
 import { RolesGuard } from 'src/feature/auth/guard/roles.guard';
@@ -28,7 +29,7 @@ import { Role } from 'src/common/role.enum';
 @Controller('cars')
 @UseInterceptors(new TransformInterceptor())
 export class CarController {
-  constructor(private readonly carService: CarService) {}
+  constructor(private readonly carService: CarService) { }
 
   @Post()
   @UseGuards(RolesGuard)
@@ -71,6 +72,7 @@ export class CarController {
   @Patch(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
+  @HttpCode(HttpStatus.NO_CONTENT)
   update(@Param('id') id: number, @Body() updateCarDto: UpdateCarDto) {
     return this.carService.update(+id, updateCarDto);
   }
@@ -78,6 +80,7 @@ export class CarController {
   @Delete(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.Admin)
+  @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: number) {
     return this.carService.remove(+id);
   }

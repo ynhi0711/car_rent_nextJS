@@ -4,7 +4,7 @@ import * as constant from '../../common/constant';
 import Car from 'src/feature/car/entities/car.entity';
 import { APIException } from 'src/common/exception/api_exception';
 import Order from 'src/feature/orders/entities/order.entity';
-import { Sequelize } from 'sequelize';
+import { Sequelize, Transaction } from 'sequelize';
 import OrderStatus, {
   OrderStatusEnum,
 } from 'src/feature/orders/entities/order_status.entity';
@@ -25,7 +25,10 @@ import { UserRole } from 'src/feature/users/entities/user_role.entity';
 import { PagingDto } from 'src/common/paging.dto';
 import Coupon, { CouponEnum } from './entities/coupon.entity';
 import { QueueService } from 'src/common/queues/queues.service';
-
+import { Image } from 'src/feature/car/entities/images.entity';
+import { Op } from 'sequelize';
+import * as moment from 'moment';
+import { randomInt } from 'crypto';
 @Injectable()
 export class OrdersService {
   constructor(
@@ -84,7 +87,7 @@ export class OrdersService {
     return { coupon, total_rental_price: price };
   }
 
-  async checkCarAvailableToRent(createOrderDto: CreateOrderDto) {
+  async checkCarAvailableForRent(createOrderDto: CreateOrderDto) {
     // Check car status != UNAVAILABLE ===> false
 
     // Check if exists an order rented this car_id , !isExists  ===> true
@@ -92,6 +95,9 @@ export class OrdersService {
     // Check if order.status == Picked ===> false
 
     // Check order.end_date < input.start_date || order.start_date > input.end_date
+
+    const pickupDateUtc = moment(createOrderDto.pick_up_date).utc(false).format('YYYY-MM-DD HH:mm:ss');
+    const dropoffDateUtc = moment(createOrderDto.drop_off_date).utc(false).format('YYYY-MM-DD HH:mm:ss');
 
     let car = await this.carRepository.findOne({
       where: { id: createOrderDto.car_id },
@@ -103,69 +109,60 @@ export class OrdersService {
     } else if (car.status_id == CarStatus.unavailable) {
       return false;
     }
-    const currentCar = await this.orderRepository.findOne({
-      where: { car_id: createOrderDto.car_id },
-    });
-    if (!currentCar) {
-      return true;
-    }
 
-    const literalValue = Sequelize.literal(`(SELECT COUNT(*) FROM orders 
-      WHERE (('${createOrderDto.pick_up_date}' BETWEEN orders.pick_up_date AND orders.drop_off_date) 
-      OR ('${createOrderDto.drop_off_date}' BETWEEN orders.pick_up_date AND orders.drop_off_date) 
-      OR (orders.pick_up_date BETWEEN '${createOrderDto.pick_up_date}' AND '${createOrderDto.drop_off_date}') 
-      OR (orders.drop_off_date BETWEEN '${createOrderDto.pick_up_date}' AND '${createOrderDto.drop_off_date}')) 
-      and orders.order_status_id = ${OrderStatusEnum.Booked}) = 0`);
-
-    return !!(await this.carRepository.findOne({
-      include: [
-        {
-          model: Order,
-          required: true,
-          include: [
-            {
-              model: Payment,
-              required: true,
-              where: {
-                literalValue,
-              },
-            },
-          ],
-        },
-      ],
+    let carAvailable = await this.carRepository.findOne({
+      attributes: ['id'],
       where: {
-        id: createOrderDto.car_id,
+        [Op.and]: [
+          { id: createOrderDto.car_id },
+          {
+            id: {
+              [Op.notIn]: [
+                Sequelize.literal(`(SELECT car_id from Orders WHERE Orders.order_status_id = ${OrderStatusEnum.Booked} AND
+               (('${pickupDateUtc}' BETWEEN Orders.pick_up_date AND Orders.drop_off_date)
+              OR ('${dropoffDateUtc}' BETWEEN Orders.pick_up_date AND Orders.drop_off_date)
+              OR (Orders.pick_up_date BETWEEN '${pickupDateUtc}' AND '${dropoffDateUtc}')
+              OR (Orders.drop_off_date BETWEEN '${pickupDateUtc}' AND '${dropoffDateUtc}')))`),
+              ],
+            },
+          }
+        ]
+
       },
-    }));
+
+    });
+    if (carAvailable) return true;
   }
 
   async placeOrder(userId: number, createPlaceOrderDto: CreateOrderDto) {
+    //Block this carID while placing an order
     const t = await this.sequelize.transaction();
     try {
-      if (await this.checkCarAvailableToRent(createPlaceOrderDto)) {
-        const rawOrder = new Order();
-        rawOrder.user_id = userId;
-        rawOrder.car_id = createPlaceOrderDto.car_id;
-        rawOrder.drop_off_date = createPlaceOrderDto.drop_off_date;
-        rawOrder.drop_off_location = createPlaceOrderDto.drop_off_location;
-        rawOrder.pick_up_date = createPlaceOrderDto.pick_up_date;
-        rawOrder.pick_up_location = createPlaceOrderDto.pick_up_location;
-        rawOrder.order_status_id = OrderStatusEnum.Booked;
-        const order = await rawOrder.save({ transaction: t });
+      let car = await this.carRepository.findOne({
+        include: [Type, Price],
+        where: { id: createPlaceOrderDto.car_id },
+        lock: t.LOCK.UPDATE,
+        transaction: t
+      });
 
-        const rawPayment = new Payment();
-        rawPayment.order_id = order.id;
-        rawPayment.user_id = userId;
-        rawPayment.payment_status_id = PaymentStatusEnum.Pending;
-        rawPayment.payment_method_id = PaymentMethodEnum.Cash;
+      if (await this.checkCarAvailableForRent(createPlaceOrderDto)) {
+        const orderModel = {
+          user_id: userId,
+          car_id: createPlaceOrderDto.car_id,
+          drop_off_date: createPlaceOrderDto.drop_off_date,
+          drop_off_location: createPlaceOrderDto.drop_off_location,
+          pick_up_date: createPlaceOrderDto.pick_up_date,
+          pick_up_location: createPlaceOrderDto.pick_up_location,
+          order_status_id: OrderStatusEnum.Booked
+        }
+        const order = await Order.create(orderModel, { transaction: t });
 
-        const car = await this.carRepository.findOne({
-          include: [Type, Price],
-          where: {
-            id: createPlaceOrderDto.car_id,
-          },
-          transaction: t,
-        });
+        const paymentModel = new Payment();
+        paymentModel.order_id = order.id;
+        paymentModel.user_id = userId;
+        paymentModel.payment_status_id = PaymentStatusEnum.Pending;
+        paymentModel.payment_method_id = PaymentMethodEnum.Cash;
+
         let price = car.price[car.price.length - 1]?.price;
 
         if (createPlaceOrderDto.coupon_code) {
@@ -180,11 +177,11 @@ export class OrdersService {
             } else if (coupon.id === CouponEnum.FixedAmount) {
               price = price - coupon.discount_value;
             }
-            rawPayment.coupon_id = coupon.id;
+            paymentModel.coupon_id = coupon.id;
           }
         }
-        rawPayment.price = price;
-        const payment = await rawPayment.save({ transaction: t });
+        paymentModel.price = price;
+        const payment = await paymentModel.save({ transaction: t });
 
         const user = await this.userRepository.findByPk(userId, {
           transaction: t,

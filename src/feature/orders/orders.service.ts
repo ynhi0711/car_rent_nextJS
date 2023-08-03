@@ -69,22 +69,34 @@ export class OrdersService {
         title: `car_id ${createOrderDto.car_id} is not found`,
       });
     }
-    let coupon: Coupon;
+    let coupon: Coupon
     if (createOrderDto.coupon_code) {
       coupon = await this.couponRepository.findOne({
         where: {
           code: createOrderDto.coupon_code,
         },
       });
-      if (coupon) {
-        if (coupon.coupon_type_id === CouponEnum.Percentage) {
-          price = price - (price * coupon.discount_value) / 100;
-        } else if (coupon.coupon_type_id === CouponEnum.FixedAmount) {
-          price = price - coupon.discount_value;
-        }
-      }
+
     }
-    return { coupon, total_rental_price: price };
+    const totalPrice = await this.getTotalPriceByDate(createOrderDto.pick_up_date, createOrderDto.drop_off_date, price, coupon)
+    return { coupon_code: createOrderDto.coupon_code, total_rental_price: totalPrice };
+  }
+
+  async getTotalPriceByDate(pickup: Date, dropoff: Date, price: number, coupon: Coupon) {
+    let pickUpDate = moment(pickup)
+    let dropoffDate = moment(dropoff)
+    let numberOfDays = dropoffDate.diff(pickUpDate, 'days') + 1;
+    let totalPriceByDays = price * numberOfDays
+
+    if (coupon) {
+      if (coupon.coupon_type_id === CouponEnum.Percentage) {
+        totalPriceByDays = totalPriceByDays - (totalPriceByDays * coupon.discount_value) / 100;
+      } else if (coupon.coupon_type_id === CouponEnum.FixedAmount) {
+        totalPriceByDays = totalPriceByDays - coupon.discount_value;
+      }
+
+    }
+    return totalPriceByDays
   }
 
   async checkCarAvailableForRent(createOrderDto: CreateOrderDto) {
@@ -164,23 +176,19 @@ export class OrdersService {
         paymentModel.payment_method_id = PaymentMethodEnum.Cash;
 
         let price = car.price[car.price.length - 1]?.price;
+        let coupon: Coupon
 
         if (createPlaceOrderDto.coupon_code) {
-          const coupon = await this.couponRepository.findOne({
+          coupon = await this.couponRepository.findOne({
             where: {
               code: createPlaceOrderDto.coupon_code,
             },
           });
           if (coupon) {
-            if (coupon.id === CouponEnum.Percentage) {
-              price = price - (price * coupon.discount_value) / 100;
-            } else if (coupon.id === CouponEnum.FixedAmount) {
-              price = price - coupon.discount_value;
-            }
             paymentModel.coupon_id = coupon.id;
           }
         }
-        paymentModel.price = price;
+        paymentModel.price = await this.getTotalPriceByDate(createPlaceOrderDto.pick_up_date, createPlaceOrderDto.drop_off_date, price, coupon);
         const payment = await paymentModel.save({ transaction: t });
 
         const user = await this.userRepository.findByPk(userId, {

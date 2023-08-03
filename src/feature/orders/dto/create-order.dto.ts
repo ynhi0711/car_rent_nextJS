@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
+import { IsEndDateAfterStartDate } from 'src/common/vallidators/date.validator.constraints';
 
 export class CreateOrderDto {
   @IsNumber()
@@ -18,9 +19,9 @@ export class CreateOrderDto {
   @IsNotEmpty()
   pick_up_location: string;
 
-  // @IsEndDateAfterStartDate("pick_up_date", {
-  //     message: "drop_off_date must be larger than pick_up_date"
-  // })
+  @IsEndDateAfterStartDate("pick_up_date", {
+    message: "drop_off_date must be larger than pick_up_date"
+  })
   @IsDateString()
   @IsNotEmpty()
   drop_off_date: Date;

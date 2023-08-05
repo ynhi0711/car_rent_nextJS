@@ -4,9 +4,9 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.bulkInsert('types', [
-      { name: 'Sport', created_at: new Date(), updated_at: new Date() },
-      { name: 'Normal', created_at: new Date(), updated_at: new Date() },
-      { name: 'Luxury', created_at: new Date(), updated_at: new Date() }
+      { name: 'Sport', createdAt: new Date(), updatedAt: new Date() },
+      { name: 'Normal', createdAt: new Date(), updatedAt: new Date() },
+      { name: 'Luxury', createdAt: new Date(), updatedAt: new Date() }
     ], {});
     console.log('Types have been seeded successfully!');
   },

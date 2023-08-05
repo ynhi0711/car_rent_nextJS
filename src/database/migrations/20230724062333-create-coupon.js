@@ -10,16 +10,26 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       code: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false
       },
       coupon_type_id: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'coupon_types',
+          key: 'id'
+        },
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
       },
       discount_value: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        allowNull: false
       },
-      expiratation_date: {
-        type: Sequelize.DATE
+      expiration_date: {
+        type: Sequelize.DATE,
+        allowNull: false
       },
       createdAt: {
         allowNull: false,
@@ -30,6 +40,7 @@ module.exports = {
         type: Sequelize.DATE
       }
     });
+    await queryInterface.addIndex('coupons', ['code'])
   },
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('coupons');

@@ -20,14 +20,14 @@ export class Type extends Model<Type> {
   @Column({
     type: DataType.DATE,
     allowNull: false,
-    field: 'created_at',
+    field: 'createdAt',
   })
   createdAt!: Date;
 
   @Column({
     type: DataType.DATE,
     allowNull: false,
-    field: 'updated_at',
+    field: 'updatedAt',
   })
   updatedAt!: Date;
 }

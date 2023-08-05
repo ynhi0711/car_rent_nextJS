@@ -4,8 +4,8 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.bulkInsert('user_roles', [
-      { role: 'USER', created_at: new Date(), updated_at: new Date() },
-      { role: 'ADMIN', created_at: new Date(), updated_at: new Date() },
+      { role: 'USER', createdAt: new Date(), updatedAt: new Date() },
+      { role: 'ADMIN', createdAt: new Date(), updatedAt: new Date() },
     ], {});
     console.log('roles have been seeded successfully!');
 

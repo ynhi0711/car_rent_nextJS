@@ -10,26 +10,29 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       car_id: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'cars',
+          key: 'id'
+        },
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
       },
-      original_price: {
-        type: Sequelize.INTEGER
+      price: {
+        type: Sequelize.INTEGER,
+        allowNull: false
       },
-      discount: {
-        type: Sequelize.INTEGER
-      },
-      final_price: {
-        type: Sequelize.INTEGER
-      },
-      created_at: {
+      createdAt: {
         allowNull: false,
         type: Sequelize.DATE
       },
-      updated_at: {
+      updatedAt: {
         allowNull: false,
         type: Sequelize.DATE
       }
     });
+    await queryInterface.addIndex('prices', ['price'])
   },
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('prices');

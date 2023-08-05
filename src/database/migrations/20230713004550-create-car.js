@@ -2,66 +2,54 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('payments', {
+    await queryInterface.createTable('cars', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      order_id: {
+      name: {
+        type: Sequelize.STRING
+      },
+      description: {
+        type: Sequelize.STRING
+      },
+      capacity: {
+        type: Sequelize.INTEGER
+      },
+      gasoline: {
+        type: Sequelize.INTEGER
+      },
+      type_id: {
         type: Sequelize.INTEGER,
-        allowNull: false,
         references: {
-          model: 'orders',
+          model: 'types',
           key: 'id'
         },
         onDelete: 'CASCADE',
-        onUpdate: 'CASCADE'
-      },
-      user_id: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'users',
-          key: 'id'
-        },
-        onDelete: 'CASCADE',
-        onUpdate: 'CASCADE'
-      },
-      coupon_id: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'coupons',
-          key: 'id'
-        },
-        onDelete: 'CASCADE',
-        onUpdate: 'CASCADE'
-      },
-      payment_status_id: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'payment_statuses',
-          key: 'id'
-        },
-        onDelete: 'CASCADE',
-        onUpdate: 'CASCADE'
-      },
-      payment_method_id: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'payment_methods',
-          key: 'id'
-        },
-        onDelete: 'CASCADE',
-        onUpdate: 'CASCADE'
-      },
-      price: {
-        type: Sequelize.INTEGER,
+        onUpdate: 'CASCADE',
         allowNull: false
+      },
+      steering_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'steerings',
+          key: 'id'
+        },
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
+      },
+      status_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'statuses',
+          key: 'id'
+        },
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
       },
       createdAt: {
         allowNull: false,
@@ -70,10 +58,13 @@ module.exports = {
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE
-      }
+      },
     });
+    queryInterface.addIndex('cars', ['name'])
+    queryInterface.addIndex('cars', ['capacity'])
+    queryInterface.addIndex('cars', ['gasoline'])
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('payments');
+    await queryInterface.dropTable('cars');
   }
 };

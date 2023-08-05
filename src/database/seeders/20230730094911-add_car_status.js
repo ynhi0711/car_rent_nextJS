@@ -4,14 +4,14 @@
 module.exports = {
   async up (queryInterface, Sequelize) {
     await queryInterface.bulkInsert('statuses', [
-      { status: 'AVAILABLE', created_at: new Date(), updated_at: new Date() },
-      { status: 'RENTED', created_at: new Date(), updated_at: new Date() },
-      { status: 'UNAVAILABLE', created_at: new Date(), updated_at: new Date() }
+      { status: 'AVAILABLE', createdAt: new Date(), updatedAt: new Date() },
+      { status: 'RENTED', createdAt: new Date(), updatedAt: new Date() },
+      { status: 'UNAVAILABLE', createdAt: new Date(), updatedAt: new Date() }
     ], {});
 
     await queryInterface.bulkInsert('steerings', [
-      { name: 'AUTO', created_at: new Date(), updated_at: new Date() },
-      { name: 'MANUAL', created_at: new Date(), updated_at: new Date() },
+      { name: 'AUTO', createdAt: new Date(), updatedAt: new Date() },
+      { name: 'MANUAL', createdAt: new Date(), updatedAt: new Date() },
     ], {});
     console.log('Statuses have been seeded successfully!');
   },

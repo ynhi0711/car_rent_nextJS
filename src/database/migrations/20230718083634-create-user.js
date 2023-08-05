@@ -10,7 +10,14 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       role_id: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'user_roles',
+          key: 'id'
+        },
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
       },
       name: {
         type: Sequelize.STRING
@@ -24,6 +31,9 @@ module.exports = {
       avatar_url: {
         type: Sequelize.STRING
       },
+      refresh_token: {
+        type: Sequelize.STRING
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
@@ -33,6 +43,8 @@ module.exports = {
         type: Sequelize.DATE
       }
     });
+    await queryInterface.addIndex('users', ['name'])
+    await queryInterface.addIndex('users', ['email'])
   },
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('users');

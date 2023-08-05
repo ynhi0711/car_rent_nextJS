@@ -10,13 +10,34 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       car_id: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'cars',
+          key: 'id'
+        },
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
       },
       user_id: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'users',
+          key: 'id'
+        },
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
       },
       order_status_id: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'order_statuses',
+          key: 'id'
+        },
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
       },
       drop_off_date: {
         type: Sequelize.DATE
@@ -39,6 +60,10 @@ module.exports = {
         type: Sequelize.DATE
       }
     });
+    await queryInterface.addIndex('orders', ['drop_off_date'])
+    await queryInterface.addIndex('orders', ['pick_up_date'])
+    await queryInterface.addIndex('orders', ['drop_off_location'])
+    await queryInterface.addIndex('orders', ['pick_up_location'])
   },
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('orders');

@@ -35,14 +35,14 @@ export class Price extends Model<Price> {
   @Column({
     allowNull: false,
     type: DataType.DATE,
-    field: 'created_at',
+    field: 'createdAt',
   })
   createdAt!: Date;
 
   @Column({
     allowNull: false,
     type: DataType.DATE,
-    field: 'updated_at',
+    field: 'updatedAt',
   })
   updatedAt!: Date;
 }
